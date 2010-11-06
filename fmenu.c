@@ -94,6 +94,7 @@ static Bool vlist = False;
 static unsigned int lines = 0;
 static void (*calcoffsets)(void) = calcoffsetsh;
 static void (*drawmenu)(void) = drawmenuh;
+static Bool multiselect = False;
 
 void
 appenditem(Item *i, Item **list, Item **last) {
@@ -513,8 +514,9 @@ kpress(XKeyEvent * e) {
 			fprintf(stdout, "%s", sel->text);
 		else if(*text)
 			fprintf(stdout, "%s", text);
+		if (!multiselect) running = False;
+		else fprintf(stdout, "\n");
 		fflush(stdout);
-		running = False;
 		break;
 	case XK_Right:
 	case XK_Down:
@@ -765,6 +767,9 @@ main(int argc, char *argv[]) {
 		}
 		else if(!strcmp(argv[i], "-sb")) {
 			if(++i < argc) selbgcolor = argv[i];
+		}
+		else if(!strcmp(argv[i], "-ms")) {
+			multiselect = True;
 		}
 		else if(!strcmp(argv[i], "-sf")) {
 			if(++i < argc) selfgcolor = argv[i];
