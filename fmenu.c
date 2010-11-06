@@ -406,6 +406,7 @@ kpress(XKeyEvent * e) {
 			break;
 		case XK_j:
 		case XK_J:
+		case XK_Return:
 			ksym = XK_Return;
 			break;
 		case XK_u:
@@ -508,14 +509,20 @@ kpress(XKeyEvent * e) {
 		calcoffsets();
 		break;
 	case XK_Return:
-		if(e->state & ShiftMask)
-			fprintf(stdout, "%s", text);
-		else if(sel)
-			fprintf(stdout, "%s", sel->text);
-		else if(*text)
-			fprintf(stdout, "%s", text);
+		if(multiselect && e->state & ControlMask) {
+			Item *i;
+			for(i = item; i; i = i->right)
+				fprintf(stdout, "%s\n", i->text);
+                } else {
+			if(e->state & ShiftMask)
+				fprintf(stdout, "%s", text);
+			else if(sel)
+				fprintf(stdout, "%s", sel->text);
+			else if(*text)
+				fprintf(stdout, "%s", text);
+			if (multiselect) fprintf(stdout, "\n");
+		}
 		if (!multiselect) running = False;
-		else fprintf(stdout, "\n");
 		fflush(stdout);
 		break;
 	case XK_Right:
