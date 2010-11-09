@@ -5,6 +5,7 @@ fmenu \- fast menu
 .B fmenu
 .RB [ \-i ]
 .RB [ \-b ]
+.RB [ \-ms ]
 .RB [ \-l " <lines>"]
 .RB [ \-fn " <font>"]
 .RB [ \-nb " <color>"]
@@ -28,6 +29,11 @@ makes fmenu match menu entries case insensitively.
 .TP
 .B \-b
 defines that fmenu appears at the bottom.
+.TP
+.B \-ms
+allows multiple selections. Every item clicked by enter gets printed, but
+fmenu does not exit. Pressing Ctrl-Enter prints all items that match
+current selection.
 .TP
 .B \-l <lines>
 activates vertical list mode.
