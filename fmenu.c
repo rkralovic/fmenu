@@ -696,7 +696,7 @@ setup(Bool topbar) {
 			unsigned int dui;
 			Window dummy;
 			if(XQueryPointer(dpy, root, &dummy, &dummy, &x, &y, &di, &di, &dui))
-				for(i = 0; i < n; i++)
+				for(i = 0; i < n-1; i++)
 					if(INRECT(x, y, info[i].x_org, info[i].y_org, info[i].width, info[i].height))
 						break;
 		}
