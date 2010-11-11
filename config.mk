@@ -20,7 +20,7 @@ LIBS = -L/usr/lib -lc -L${X11LIB} -lX11 ${XINERAMALIBS}
 
 # flags
 CPPFLAGS = -D_BSD_SOURCE -DVERSION=\"${VERSION}\" ${XINERAMAFLAGS}
-CFLAGS += -std=c99 -pedantic -Wall -g ${INCS} ${CPPFLAGS}
+CFLAGS += -std=c99 -pedantic -Wall -O2 -g ${INCS} ${CPPFLAGS}
 LDFLAGS += -g ${LIBS}
 
 # Solaris

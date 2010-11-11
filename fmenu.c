@@ -1,3 +1,4 @@
+/* vim: set noet sts=8 sw=8 ts=8: */
 /* See LICENSE file for copyright and license details. */
 #include <ctype.h>
 #include <locale.h>
@@ -13,6 +14,8 @@
 #ifdef XINERAMA
 #include <X11/extensions/Xinerama.h>
 #endif
+#include <sys/types.h>
+#include <regex.h>
 
 /* macros */
 #define CLEANMASK(mask)         (mask & ~(numlockmask | LockMask))
@@ -548,12 +551,17 @@ kpress(XKeyEvent * e) {
 void
 match(char *pattern) {
 	unsigned int plen;
-	Item *i, *itemend, *lexact, *lprefix, *lsubstr, *exactend, *prefixend, *substrend;
+	Item *i, *itemend, *lexact, *lprefix, *lsubstr, *lregex, 
+	     *exactend, *prefixend, *substrend, *regexend;
+	regex_t reg;
+	int valid_regex;
 
 	if(!pattern)
 		return;
 	plen = strlen(pattern);
-	item = lexact = lprefix = lsubstr = itemend = exactend = prefixend = substrend = NULL;
+	item = lexact = lprefix = lsubstr = lregex = 
+		itemend = exactend = prefixend = substrend =regexend = NULL;
+	valid_regex = !regcomp(&reg, pattern, REG_NOSUB);
 	for(i = allitems; i; i = i->next)
 		if(!fstrncmp(pattern, i->text, plen + 1))
 			appenditem(i, &lexact, &exactend);
@@ -561,6 +569,8 @@ match(char *pattern) {
 			appenditem(i, &lprefix, &prefixend);
 		else if(fstrstr(i->text, pattern))
 			appenditem(i, &lsubstr, &substrend);
+		else if(valid_regex && !regexec(&reg, i->text, 0, NULL, 0))
+			appenditem(i, &lregex, &regexend);
 	if(lexact) {
 		item = lexact;
 		itemend = exactend;
@@ -582,6 +592,15 @@ match(char *pattern) {
 		else
 			item = lsubstr;
 	}
+	if(lregex) {
+		if(itemend) {
+			itemend->right = lregex;
+			lregex->left = itemend;
+		}
+		else
+			item = lregex;
+	}
+	if (valid_regex) regfree(&reg);
 	curr = prev = next = sel = item;
 	calcoffsets();
 }
