@@ -97,7 +97,11 @@ static Bool vlist = False;
 static unsigned int lines = 0;
 static void (*calcoffsets)(void) = calcoffsetsh;
 static void (*drawmenu)(void) = drawmenuh;
-static Bool multiselect = False;
+
+#define SINGLE 1
+#define MULTI 2
+#define QUICK 3
+static int select_mode = SINGLE;
 
 void
 appenditem(Item *i, Item **list, Item **last) {
@@ -512,7 +516,7 @@ kpress(XKeyEvent * e) {
 		calcoffsets();
 		break;
 	case XK_Return:
-		if(multiselect && e->state & ControlMask) {
+		if(select==MULTI && e->state & ControlMask) {
 			Item *i;
 			for(i = item; i; i = i->right)
 				fprintf(stdout, "%s\n", i->text);
@@ -523,9 +527,9 @@ kpress(XKeyEvent * e) {
 				fprintf(stdout, "%s", sel->text);
 			else if(*text)
 				fprintf(stdout, "%s", text);
-			if (multiselect) fprintf(stdout, "\n");
+			if (select==MULTI) fprintf(stdout, "\n");
 		}
-		if (!multiselect) running = False;
+		if (select!=MULTI) running = False;
 		fflush(stdout);
 		break;
 	case XK_Right:
@@ -544,6 +548,10 @@ kpress(XKeyEvent * e) {
 		strncpy(text, sel->text, sizeof text);
 		match(text);
 		break;
+	}
+	if (select_mode == QUICK && !item->right) {
+		fprintf(stdout, "%s", item->text);
+		running = False;
 	}
 	drawmenu();
 }
@@ -795,7 +803,10 @@ main(int argc, char *argv[]) {
 			if(++i < argc) selbgcolor = argv[i];
 		}
 		else if(!strcmp(argv[i], "-ms")) {
-			multiselect = True;
+			select_mode = MULTI;
+		}
+		else if(!strcmp(argv[i], "-qs")) {
+			select_mode = QUICK;
 		}
 		else if(!strcmp(argv[i], "-sf")) {
 			if(++i < argc) selfgcolor = argv[i];
