@@ -1,8 +1,5 @@
 #!/bin/bash
 
-## if you wish to start g2xosd here
-#pidof gx2osd || nohup gx2osd &>/dev/null &
-
 menu() {
 	STYLE="$1"
 	shift
@@ -37,17 +34,8 @@ playlst() {
 }
 
 media() {
-#        MLIB=`sqlite3 $HOME/.config/xmms2/medialib.db \
-#          "select distinct m1.id || ' | ' || coalesce(m3.value,'?') || ': ' || coalesce(m4.value,'?') || ' / ' || coalesce(m2.value, '?') \
-#           from (select distinct id from media) m1 left outer join media m2 using (id) \
-#                left outer join media m3 using (id) left outer join media m4 using (id) \
-#           where coalesce(m2.key, 'title')='title' and coalesce(m3.key,'artist')='artist' and coalesce(m4.key,'album')='album' order by m1.id;"`
-#	menu multi "XMMS2 Search:" "$MLIB" "$@" | awk -F '|' '{print $1}' | xargs -L1 xmms2 addid
 	CACHE="$HOME/.xmms2.mlib.cache"
 	MLIB="$HOME/.config/xmms2/medialib.db"
-#	if [ ! -f $CACHE -o $CACHE -ot $MLIB ]; then
-#		xmms2 mlib search 'url:*' >$CACHE
-#	fi
 	menu multi "XMMS2 Search:" "`cat $CACHE`" "$@" | awk -F '|' '{print $1}' | xargs -L1 xmms2 addid
 }
 
