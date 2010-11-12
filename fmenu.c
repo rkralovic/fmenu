@@ -516,7 +516,7 @@ kpress(XKeyEvent * e) {
 		calcoffsets();
 		break;
 	case XK_Return:
-		if(select==MULTI && e->state & ControlMask) {
+		if(select_mode == MULTI && e->state & ControlMask) {
 			Item *i;
 			for(i = item; i; i = i->right)
 				fprintf(stdout, "%s\n", i->text);
@@ -527,9 +527,9 @@ kpress(XKeyEvent * e) {
 				fprintf(stdout, "%s", sel->text);
 			else if(*text)
 				fprintf(stdout, "%s", text);
-			if (select==MULTI) fprintf(stdout, "\n");
+			if (select_mode == MULTI) fprintf(stdout, "\n");
 		}
-		if (select!=MULTI) running = False;
+		if (select_mode != MULTI) running = False;
 		fflush(stdout);
 		break;
 	case XK_Right:
