@@ -35,6 +35,10 @@ allows multiple selections. Every item clicked by enter gets printed, but
 fmenu does not exit. Pressing Ctrl-Enter prints all items that match
 current selection.
 .TP
+.B \-qs
+quickselect mode: Selection is printed and fmenu closed as soon as the
+match is unique.
+.TP
 .B \-l <lines>
 activates vertical list mode.
 The given number of lines will be displayed. Window height will get adjusted.
@@ -68,7 +72,8 @@ fmenu is completely controlled by the keyboard. The following keys are recognize
 .TP
 .B Any printable character
 Appends the character to the text in the input field.  This works as a filter:
-only items containing this text will be displayed.
+only items containing this text will be displayed. Regular expressions are
+supported as well.
 .TP
 .B Left/Right (Up/Down) (Mod1\-h/Mod1\-l)
 Select the previous/next item.
@@ -90,6 +95,11 @@ on termination.
 .B Shift\-Return (Control\-Shift\-j)
 Confirm selection and quit (print the text in the input field to standard output).
 Returns
+.B 0
+on termination.
+.TP
+.B Control\-Return
+If in multiselect mode, print text of all matching entries.
 .B 0
 on termination.
 .TP
