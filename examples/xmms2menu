@@ -29,6 +29,15 @@ list(){
 	fi
 }
 
+added() {
+  echo "here"
+  if (nyxmms2 status | egrep -q "^Play"); then
+    true
+  else
+    next
+  fi
+}
+
 playlst() {
 	menu single "XMMS2 playlists:" "`xmms2 playlist list`" "$@" | sed 's/^[ ->]*//' | xargs -L1 xmms2 playlist load
 }
@@ -36,7 +45,7 @@ playlst() {
 media() {
 	CACHE="$HOME/.xmms2.mlib.cache"
 	MLIB="$HOME/.config/xmms2/medialib.db"
-	menu multi "XMMS2 Search:" "`cat $CACHE`" "$@" | awk -F '|' '{print $1}' | xargs -L1 xmms2 addid
+	menu multi "XMMS2 Search:" "`cat $CACHE`" "$@" | awk -F '|' '{print $1}' | ( xargs -L1 xmms2 addid && added )
 }
 
 rehash() {
@@ -46,25 +55,25 @@ rehash() {
 last24hours() {
 	TIME=`date "+%s"`
 	TIME=$((TIME-24*3600))
-	menu multi "XMMS2 Search:" "`xmms2 mlib search "laststarted>=$TIME"`" "$@" | awk -F '|' '{print $1}' | xargs -L1 xmms2 addid
+        menu multi "XMMS2 Search:" "`xmms2 mlib search "laststarted>=$TIME"`" "$@" | awk -F '|' '{print $1}' | ( xargs -L1 xmms2 addid && added )
 }
 
 last3hours() {
 	TIME=`date "+%s"`
 	TIME=$((TIME-3*3600))
-	menu multi "XMMS2 Search:" "`xmms2 mlib search "laststarted>=$TIME"`" "$@" | awk -F '|' '{print $1}' | xargs -L1 xmms2 addid
+	menu multi "XMMS2 Search:" "`xmms2 mlib search "laststarted>=$TIME"`" "$@" | awk -F '|' '{print $1}' | ( xargs -L1 xmms2 addid && added )
 }
 
 last() {
 	TIME=`date "+%s"`
 	TIME=$((TIME-3*3600))
-	menu multi "XMMS2 Search:" "`nyxmms2 search -o -laststarted 'url:*' | head -40`" "$@" | awk -F '|' '{print $1}' | xargs -L1 xmms2 addid
+	menu multi "XMMS2 Search:" "`nyxmms2 search -o -laststarted 'url:*' | head -40`" "$@" | awk -F '|' '{print $1}' | ( xargs -L1 xmms2 addid && added )
 }
 
 favourite() {
 	TIME=`date "+%s"`
 	TIME=$((TIME-3*3600))
-	menu multi "XMMS2 Search:" "`nyxmms2 search -o -timesplayed 'url:*' | head -40`" "$@" | awk -F '|' '{print $1}' | xargs -L1 xmms2 addid
+	menu multi "XMMS2 Search:" "`nyxmms2 search -o -timesplayed 'url:*' | head -40`" "$@" | awk -F '|' '{print $1}' | ( xargs -L1 xmms2 addid && added )
 }
 
 next() {
