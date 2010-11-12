@@ -1,0 +1,97 @@
+#!/bin/bash
+
+## if you wish to start g2xosd here
+#pidof gx2osd || nohup gx2osd &>/dev/null &
+
+menu() {
+	STYLE="$1"
+	shift
+	TITLE="$1"
+	shift
+	DATA="$1"
+	shift
+
+	LINES=$(( `wc -l <<<"$DATA"` ))
+	LINES=$(( $LINES > 35 ? 35 : $LINES ))
+	case "$STYLE" in
+		(multi) fmenu -i -ms -p "$TITLE" -l "$LINES" "$@" <<<"$DATA";;
+		(single) fmenu -i -p "$TITLE" -l "$LINES" "$@" <<<"$DATA";;
+		(line) fmenu -i -p "$TITLE" "$@" <<<"$DATA";;
+	esac
+}
+
+list(){
+	NUM=$( { menu single "XMMS2 playlist `xmms2 playlist active`:" "`xmms2 list "$@" | grep '\['`" | sed 's|^..\[\([^/]*\).*$|\1|'; } )
+	echo "zz${NUM}zz"
+	if [ "$NUM" != "" ]; then
+		if [ $? == 0 ]; then
+			xmms2 move $NUM 1
+			xmms2 jump 1
+		fi
+		xmms2 play
+	fi
+}
+
+playlst() {
+	menu single "XMMS2 playlists:" "`xmms2 playlist list`" "$@" | sed 's/^[ ->]*//' | xargs -L1 xmms2 playlist load
+}
+
+media() {
+#        MLIB=`sqlite3 $HOME/.config/xmms2/medialib.db \
+#          "select distinct m1.id || ' | ' || coalesce(m3.value,'?') || ': ' || coalesce(m4.value,'?') || ' / ' || coalesce(m2.value, '?') \
+#           from (select distinct id from media) m1 left outer join media m2 using (id) \
+#                left outer join media m3 using (id) left outer join media m4 using (id) \
+#           where coalesce(m2.key, 'title')='title' and coalesce(m3.key,'artist')='artist' and coalesce(m4.key,'album')='album' order by m1.id;"`
+#	menu multi "XMMS2 Search:" "$MLIB" "$@" | awk -F '|' '{print $1}' | xargs -L1 xmms2 addid
+	CACHE="$HOME/.xmms2.mlib.cache"
+	MLIB="$HOME/.config/xmms2/medialib.db"
+#	if [ ! -f $CACHE -o $CACHE -ot $MLIB ]; then
+#		xmms2 mlib search 'url:*' >$CACHE
+#	fi
+	menu multi "XMMS2 Search:" "`cat $CACHE`" "$@" | awk -F '|' '{print $1}' | xargs -L1 xmms2 addid
+}
+
+rehash() {
+		xmms2 mlib search 'url:*' >$CACHE
+}
+
+last24hours() {
+	TIME=`date "+%s"`
+	TIME=$((TIME-24*3600))
+	menu multi "XMMS2 Search:" "`xmms2 mlib search "laststarted>=$TIME"`" "$@" | awk -F '|' '{print $1}' | xargs -L1 xmms2 addid
+}
+
+last3hours() {
+	TIME=`date "+%s"`
+	TIME=$((TIME-3*3600))
+	menu multi "XMMS2 Search:" "`xmms2 mlib search "laststarted>=$TIME"`" "$@" | awk -F '|' '{print $1}' | xargs -L1 xmms2 addid
+}
+
+last() {
+	TIME=`date "+%s"`
+	TIME=$((TIME-3*3600))
+	menu multi "XMMS2 Search:" "`nyxmms2 search -o -laststarted 'url:*' | head -40`" "$@" | awk -F '|' '{print $1}' | xargs -L1 xmms2 addid
+}
+
+favourite() {
+	TIME=`date "+%s"`
+	TIME=$((TIME-3*3600))
+	menu multi "XMMS2 Search:" "`nyxmms2 search -o -timesplayed 'url:*' | head -40`" "$@" | awk -F '|' '{print $1}' | xargs -L1 xmms2 addid
+}
+
+next() {
+	xmms2 next
+	xmms2 play
+}
+
+clear() {
+	nyxmms2 clear
+}
+
+status() {
+	nyxmms2 status | sed "s/^/\"/;s/$/\"/" | xargs notify-send
+}
+
+export COLUMNS=200
+RUN=`echo -e "list\\nplaylst\\nmedia\\nnext\\nlast\\nfavourite\\nstatus\\nrehash\\nclear" | fmenu -i -qs -p "Xmms2 menu:"`
+"$RUN" "$@"
