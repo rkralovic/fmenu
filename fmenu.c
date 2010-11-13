@@ -549,7 +549,7 @@ kpress(XKeyEvent * e) {
 		match(text);
 		break;
 	}
-	if (select_mode == QUICK && !item->right) {
+	if (select_mode == QUICK && item && !item->right) {
 		fprintf(stdout, "%s", item->text);
 		running = False;
 	}
