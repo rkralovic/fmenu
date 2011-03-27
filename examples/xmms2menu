@@ -1,4 +1,5 @@
 #!/bin/bash
+CACHE="$HOME/.xmms2.mlib.cache"
 
 menu() {
 	STYLE="$1"
@@ -43,12 +44,11 @@ playlst() {
 }
 
 media() {
-	CACHE="$HOME/.xmms2.mlib.cache"
 	MLIB="$HOME/.config/xmms2/medialib.db"
 	menu multi "XMMS2 Search:" "`cat $CACHE`" "$@" | awk -F '|' '{print $1}' | ( xargs -L1 xmms2 addid && added )
 }
 
-rehash() {
+update() {
 		xmms2 mlib search 'url:*' >$CACHE
 }
 
@@ -81,6 +81,10 @@ next() {
 	xmms2 play
 }
 
+rewind() {
+	nyxmms2 seek 0
+}
+
 clear() {
 	nyxmms2 clear
 }
@@ -90,5 +94,5 @@ status() {
 }
 
 export COLUMNS=200
-RUN=`echo -e "list\\nplaylst\\nmedia\\nnext\\nlast\\nfavourite\\nstatus\\nrehash\\nclear" | fmenu -i -qs -p "Xmms2 menu:"`
+RUN=`echo -e "list\\nplaylst\\nmedia\\nnext\\nlast\\nrewind\\nfavourite\\nstatus\\nupdate\\nclear" | fmenu -i -qs -p "Xmms2 menu:"`
 "$RUN" "$@"
