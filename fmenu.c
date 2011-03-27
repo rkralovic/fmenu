@@ -266,6 +266,7 @@ drawmenuv(void) {
 	if(curr) {
 		dc.x = 0;
 		dc.w = mw;
+		dc.h = dc.font.height + 2;
 		dc.y += dc.font.height + 2;
 		/* determine maximum items */
 		for(i = curr; i != next; i=i->right) {
