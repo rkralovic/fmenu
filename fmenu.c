@@ -56,7 +56,7 @@ static char *cistrstr(const char *s, const char *sub);
 static void cleanup(void);
 static void drawmenuh(void);
 static void drawmenuv(void);
-static void drawtext(const char *text, unsigned long col[ColLast]);
+static void drawtext(const char *text, unsigned long col[ColLast], int fill);
 static void eprint(const char *errstr, ...);
 static unsigned long getcolor(const char *colstr);
 static Bool grabkeyboard(void);
@@ -212,34 +212,34 @@ drawmenuh(void) {
 	dc.y = 0;
 	dc.w = mw;
 	dc.h = mh;
-	drawtext(NULL, dc.norm);
+	drawtext(NULL, dc.norm, 1);
 	/* print prompt? */
 	if(promptw) {
 		dc.w = promptw;
-		drawtext(prompt, dc.sel);
+		drawtext(prompt, dc.sel, 1);
 	}
 	dc.x += promptw;
 	dc.w = mw - promptw;
 	/* print command */
 	if(cmdw && item)
 		dc.w = cmdw;
-	drawtext(text[0] ? text : NULL, dc.norm);
+	drawtext(text[0] ? text : NULL, dc.norm, 1);
 	dc.x += cmdw;
 	if(curr) {
 		dc.w = spaceitem;
-		drawtext((curr && curr->left) ? "<" : NULL, dc.norm);
+		drawtext((curr && curr->left) ? "<" : NULL, dc.norm, 1);
 		dc.x += dc.w;
 		/* determine maximum items */
 		for(i = curr; i != next; i=i->right) {
 			dc.w = textw(i->text);
 			if(dc.w > mw / 3)
 				dc.w = mw / 3;
-			drawtext(i->text, (sel == i) ? dc.sel : dc.norm);
+			drawtext(i->text, (sel == i) ? dc.sel : dc.norm, 1);
 			dc.x += dc.w;
 		}
 		dc.x = mw - spaceitem;
 		dc.w = spaceitem;
-		drawtext(next ? ">" : NULL, dc.norm);
+		drawtext(next ? ">" : NULL, dc.norm, 1);
 	}
 	XCopyArea(dpy, dc.drawable, win, dc.gc, 0, 0, mw, mh, 0, 0);
 	XFlush(dpy);
@@ -253,16 +253,22 @@ drawmenuv(void) {
 	dc.y = 0;
 	dc.w = mw;
 	dc.h = mh;
-	drawtext(NULL, dc.norm);
+	XSetForeground(dpy, dc.gc, dc.norm[ColBG]);
+	/* there should be mw instead of mw-1, but my xserver is too slow
+	 * in that case */
+	XFillRectangle(dpy, dc.drawable, dc.gc, 0,0,mw-1,mh);
+	drawtext(NULL, dc.norm, 0);
+	fprintf(stderr, "%d %d", mw-1, mh);
 	/* print prompt? */
 	if(promptw) {
 		dc.w = promptw;
-		drawtext(prompt, dc.sel);
+		dc.h = dc.font.height + 2;
+		drawtext(prompt, dc.sel, 1);
 	}
 	dc.x += promptw;
 	dc.w = mw - promptw;
 	/* print command */
-	drawtext(text[0] ? text : NULL, dc.norm);
+	drawtext(text[0] ? text : NULL, dc.norm, 0);
 	if(curr) {
 		dc.x = 0;
 		dc.w = mw;
@@ -270,23 +276,25 @@ drawmenuv(void) {
 		dc.y += dc.font.height + 2;
 		/* determine maximum items */
 		for(i = curr; i != next; i=i->right) {
-			drawtext(i->text, (sel == i) ? dc.sel : dc.norm);
+			drawtext(i->text, (sel == i) ? dc.sel : dc.norm, sel==i);
 			dc.y += dc.font.height + 2;
 		}
-		drawtext(NULL, dc.norm);
+		drawtext(NULL, dc.norm, 0);
 	}
 	XCopyArea(dpy, dc.drawable, win, dc.gc, 0, 0, mw, mh, 0, 0);
 	XFlush(dpy);
 }
 
 void
-drawtext(const char *text, unsigned long col[ColLast]) {
+drawtext(const char *text, unsigned long col[ColLast], int fill) {
 	char buf[256];
 	int i, x, y, h, len, olen;
 	XRectangle r = { dc.x, dc.y, dc.w, dc.h };
 
-	XSetForeground(dpy, dc.gc, col[ColBG]);
-	XFillRectangles(dpy, dc.drawable, dc.gc, &r, 1);
+	if (fill) {
+		XSetForeground(dpy, dc.gc, col[ColBG]);
+		XFillRectangles(dpy, dc.drawable, dc.gc, &r, 1);
+	}
 	if(!text)
 		return;
 	olen = strlen(text);
